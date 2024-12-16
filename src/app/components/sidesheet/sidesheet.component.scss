@@ -1,0 +1,61 @@
+/* sidesheet.component.scss */
+.sidesheet {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.sidesheet-content {
+  padding: 16px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.top-stack {
+  z-index: 3;
+}
+
+.middle-stack {
+  z-index: 2;
+  right: 24px;
+  height: calc(100% - 24px);
+}
+
+.bottom-stack {
+  z-index: 1;
+  right: 48px;
+  height: calc(100% - 48px);
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: red;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.side-sheet {
+  position: fixed;
+  top: 0;
+  width: 300px;
+  height: calc(100% - 12px);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  transition: margin-right 0.3s ease; /* Smooth transition for margin-right */
+}
+
+.side-sheet-closed {
+  margin-right: -300px; /* Initial position off-screen */
+}
+
+.side-sheet-open {
+  margin-right: 0; /* Open position */
+}
