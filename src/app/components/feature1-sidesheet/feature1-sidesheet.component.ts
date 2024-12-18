@@ -27,4 +27,7 @@ export class Feature1SidesheetComponent implements OnInit {
   closeFeature() {
     this.feature1Service.close('feature2');
   }
+  close() {
+    this.feature1Service.close('feature1');
+  }
 }

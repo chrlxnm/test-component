@@ -70,6 +70,14 @@ export class SideSheetComponent implements OnChanges, AfterViewInit, OnDestroy {
     // Reverse the stack to render the latest sheet on top
     const reversedSheets = [...this.sheets].reverse();
 
+    if (!this.sheets.length) {
+      if (document.body.contains(this.backdropEl)) {
+        this.renderer.removeChild(document.body, this.backdropEl);
+        this.backdropEl = null;
+      }
+    }
+    console.log("ADD", reversedSheets, this.renderedComponents,containerEl)
+
     reversedSheets.forEach((sheet, reverseIndex) => {
       const componentEl = sheet.component.location.nativeElement;
 
@@ -95,11 +103,12 @@ export class SideSheetComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.renderer.setStyle(
           componentEl,
           'height',
-          `calc(100vh - ${48 * (reverseIndex + 1)}px)`
+          `calc(100vh - ${40 * (reverseIndex + 1) + 24}px)`
         );
 
         // Set width to fixed value
-        this.renderer.setStyle(componentEl, 'width', '580px');
+        this.renderer.setStyle(componentEl, 'min-width', '580px');
+        this.renderer.setStyle(componentEl, 'width', '40vw');
 
         // Move the component off-screen initially
         this.renderer.setStyle(componentEl, 'margin-right', '-580px');
@@ -120,6 +129,7 @@ export class SideSheetComponent implements OnChanges, AfterViewInit, OnDestroy {
         // Append to container
         this.renderer.appendChild(containerEl, componentEl);
         this.renderedComponents.push(componentEl);
+        console.log("ADD", reversedSheets, this.renderedComponents)
 
         // Apply backdrop if it's the first side sheet
         if (!this.backdropEl) {
@@ -141,15 +151,26 @@ export class SideSheetComponent implements OnChanges, AfterViewInit, OnDestroy {
           });
         });
       } else {
+        console.log("NOADD", reversedSheets, this.renderedComponents)
         const frontdropEl = this.renderer.createElement('div');
-        this.renderer.setStyle(frontdropEl, 'position', 'relative');
-        this.renderer.setStyle(frontdropEl, 'top', '0');
-        this.renderer.setStyle(frontdropEl, 'left', '0');
-        this.renderer.setStyle(frontdropEl, 'width', '580px');
+        this.renderer.setStyle(frontdropEl, 'position', 'fixed');
+        this.renderer.setStyle(
+          frontdropEl,
+          'top',
+          `${24 * (reverseIndex + 1)}px`
+        );
+        this.renderer.setStyle(
+          frontdropEl,
+          'right',
+          `calc(${5 * reverseIndex}vw + 10px)`
+        );
+        this.renderer.setStyle(frontdropEl, 'opacity', `0`);
+        this.renderer.setStyle(frontdropEl, 'min-width', '580px');
+        this.renderer.setStyle(frontdropEl, 'width', '40vw');
         this.renderer.setStyle(
           frontdropEl,
           'height',
-          `calc(100vh - ${48 * (reverseIndex + 1)}px)`
+          `calc(100vh - ${40 * (reverseIndex + 1) + 24}px)`
         );
         this.renderer.setStyle(
           frontdropEl,
@@ -162,7 +183,10 @@ export class SideSheetComponent implements OnChanges, AfterViewInit, OnDestroy {
           'z-index',
           `${1000 + reverseIndex - 1}`
         ); // Behind the current sheet
-        this.renderer.setStyle(frontdropEl, 'pointer-events', 'none'); // Prevent clicks on the frontdrop
+        this.renderer.setStyle(frontdropEl, 'transition', 'opacity 0.3s ease');
+        setTimeout(() => {
+          this.renderer.setStyle(frontdropEl, 'opacity', `1`);
+        }, 100);
 
         // Remove any previous frontdropEl for this sheet if it was moved to the top
         if (reverseIndex === 0) {
@@ -193,12 +217,12 @@ export class SideSheetComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.renderer.setStyle(
           componentEl,
           'right',
-          `${48 * reverseIndex + 10}px`
+          `calc(${5 * reverseIndex}vw + 10px)`
         );
         this.renderer.setStyle(
           componentEl,
           'height',
-          `calc(100vh - ${48 * (reverseIndex + 1)}px)`
+          `calc(100vh - ${40 * (reverseIndex + 1) + 24}px)`
         );
 
         // Mark frontdrop element
@@ -240,17 +264,21 @@ export class SideSheetComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   private cleanupSheets() {
     const containerEl = this.container.nativeElement;
+
     this.renderedComponents.forEach((el) => {
       try {
-        // Apply a closing transition before removing the element
+        // Apply closing transition before removing the element
         if (containerEl.contains(el)) {
-          this.renderer.setStyle(el, 'transition', 'margin-right 0.3s ease');
-          this.renderer.setStyle(el, 'margin-right', '-580px'); // Move out of view
+          this.renderer.setStyle(el, 'transition', 'margin-right 0.3s ease, opacity 0.3s ease');
+          this.renderer.setStyle(el, 'opacity', '0'); // Fade out
+          setTimeout(() => {
+            this.renderer.setStyle(el, 'margin-right', '-580px'); // Move out of view
+          }, 0);
 
           // Wait for the transition to complete before removing
           setTimeout(() => {
             if (containerEl.contains(el)) {
-              // Remove the element after transition
+              // Remove the element after the transition
               this.renderer.removeChild(containerEl, el);
             }
           }, 300); // Match the duration of the transition
@@ -262,7 +290,8 @@ export class SideSheetComponent implements OnChanges, AfterViewInit, OnDestroy {
 
     // Remove backdrop if there are no more side sheets
     if (this.renderedComponents.length === 0 && this.backdropEl) {
-      this.renderer.setStyle(this.backdropEl, 'opacity', '0');
+      this.renderer.setStyle(this.backdropEl, 'transition', 'opacity 0.3s ease');
+      this.renderer.setStyle(this.backdropEl, 'opacity', '0'); // Fade out backdrop
       setTimeout(() => {
         if (this.backdropEl) {
           this.renderer.removeChild(document.body, this.backdropEl);
@@ -273,4 +302,5 @@ export class SideSheetComponent implements OnChanges, AfterViewInit, OnDestroy {
 
     this.renderedComponents = []; // Reset the array after cleanup
   }
+
 }
